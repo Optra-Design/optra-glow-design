@@ -7,6 +7,9 @@ import { useIsMobile } from '../hooks/use-mobile';
 const SudoMode = () => {
   const [isActive, setIsActive] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [dragPosition, setDragPosition] = useState({ x: window.innerWidth - 80, y: 16 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [theme, setTheme] = useState('default');
   const [layout, setLayout] = useState('default');
   const [showLogin, setShowLogin] = useState(false);
@@ -16,6 +19,82 @@ const SudoMode = () => {
   const { isLoggedIn, login, logout, user } = useAuth();
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!isMinimized || !isMobile) return;
+    
+    setIsDragging(true);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    });
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!isMinimized || !isMobile) return;
+    
+    setIsDragging(true);
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top
+    });
+  };
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return;
+    
+    const newX = e.clientX - dragOffset.x;
+    const newY = e.clientY - dragOffset.y;
+    
+    // Keep within screen bounds
+    const maxX = window.innerWidth - 64;
+    const maxY = window.innerHeight - 64;
+    
+    setDragPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleTouchMove = (e: TouchEvent) => {
+    if (!isDragging) return;
+    
+    const touch = e.touches[0];
+    const newX = touch.clientX - dragOffset.x;
+    const newY = touch.clientY - dragOffset.y;
+    
+    // Keep within screen bounds
+    const maxX = window.innerWidth - 64;
+    const maxY = window.innerHeight - 64;
+    
+    setDragPosition({
+      x: Math.max(0, Math.min(newX, maxX)),
+      y: Math.max(0, Math.min(newY, maxY))
+    });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleDragEnd);
+      document.addEventListener('touchmove', handleTouchMove);
+      document.addEventListener('touchend', handleDragEnd);
+      
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleDragEnd);
+        document.removeEventListener('touchmove', handleTouchMove);
+        document.removeEventListener('touchend', handleDragEnd);
+      };
+    }
+  }, [isDragging, dragOffset]);
 
   useEffect(() => {
     const handleSudoToggle = () => {
@@ -30,7 +109,7 @@ const SudoMode = () => {
     };
 
     // Mobile sudo mode activation - tap top-right corner 5 times quickly
-    const handleTouchStart = (e: TouchEvent) => {
+    const handleTouchStartActivation = (e: TouchEvent) => {
       const touch = e.touches[0];
       const x = touch.clientX;
       const y = touch.clientY;
@@ -55,12 +134,12 @@ const SudoMode = () => {
 
     document.addEventListener('sudo-mode-toggle', handleSudoToggle);
     document.addEventListener('keydown', handleKeyboardShortcut);
-    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchstart', handleTouchStartActivation, { passive: true });
     
     return () => {
       document.removeEventListener('sudo-mode-toggle', handleSudoToggle);
       document.removeEventListener('keydown', handleKeyboardShortcut);
-      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchstart', handleTouchStartActivation);
     };
   }, [touchCount]);
 
@@ -112,17 +191,34 @@ const SudoMode = () => {
   if (!isActive) return null;
 
   return (
-    <div className={`fixed top-4 z-50 bg-background/95 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl animate-fade-in glow-hover transition-all duration-300 ${
-      isMobile 
-        ? isMinimized 
-          ? 'right-4 w-16 h-16' 
-          : 'left-2 right-2 max-h-[90vh] overflow-y-auto'
-        : 'left-4 max-w-sm'
-    }`}>
+    <div 
+      className={`fixed z-50 bg-background/95 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl animate-fade-in glow-hover transition-all duration-300 ${
+        isMobile 
+          ? isMinimized 
+            ? 'w-16 h-16 cursor-move select-none' 
+            : 'left-2 right-2 top-4 max-h-[90vh] overflow-y-auto'
+          : 'left-4 top-4 max-w-sm'
+      }`}
+      style={
+        isMobile && isMinimized
+          ? {
+              left: `${dragPosition.x}px`,
+              top: `${dragPosition.y}px`,
+              touchAction: 'none'
+            }
+          : {}
+      }
+    >
       {isMinimized && isMobile ? (
         <button
-          onClick={() => setIsMinimized(false)}
-          className="w-full h-full flex items-center justify-center text-gradient hover:scale-110 transition-transform"
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+          onClick={(e) => {
+            if (!isDragging) {
+              setIsMinimized(false);
+            }
+          }}
+          className="w-full h-full flex items-center justify-center text-gradient hover:scale-110 transition-transform touch-none"
         >
           <Maximize2 className="w-6 h-6" />
         </button>
