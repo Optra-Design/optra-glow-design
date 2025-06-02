@@ -1,8 +1,7 @@
 
 import React from 'react';
 import Navigation from '../components/Navigation';
-import ContactFormTest from '../components/ContactFormTest';
-import { Mail, Phone, MapPin, Clock, MessageCircle, Zap } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, MessageCircle, Zap, Send } from 'lucide-react';
 
 const Contact = () => {
   return (
@@ -23,9 +22,19 @@ const Contact = () => {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-12 mb-16">
-            {/* Contact Form */}
-            <div>
-              <ContactFormTest />
+            {/* Contact CTA */}
+            <div className="glass p-8 rounded-3xl text-center">
+              <h2 className="text-3xl font-bold text-gradient mb-6">Ready to Start?</h2>
+              <p className="text-foreground/70 mb-8">
+                Drop us an email and let's discuss your project in detail. We'll get back to you within 48 hours.
+              </p>
+              <a
+                href="mailto:aniketh@optra.me?subject=Project Inquiry&body=Hi Aniketh,%0D%0A%0D%0AI'm interested in working with Optra Design. Here are my project details:%0D%0A%0D%0AProject Type:%0D%0ABudget Range:%0D%0ATimeline:%0D%0AProject Description:%0D%0A%0D%0ALooking forward to hearing from you!"
+                className="inline-flex items-center gap-3 bg-optra-gradient hover:scale-105 transition-transform px-8 py-4 rounded-2xl text-white font-semibold text-lg"
+              >
+                <Send className="w-6 h-6" />
+                Send Email
+              </a>
             </div>
 
             {/* Contact Info */}
