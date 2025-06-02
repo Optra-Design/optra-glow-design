@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
 import { Progress } from '../components/ui/progress';
-import { Activity, TrendingUp, Zap, BarChart3 } from 'lucide-react';
+import { Activity, TrendingUp, Zap, BarChart3, Heart, Rocket, Users, Coffee, Timer, Award, Brain, Target } from 'lucide-react';
 
 const Pulse = () => {
   const [metrics, setMetrics] = useState({
@@ -20,6 +19,39 @@ const Pulse = () => {
     teamProductivity: 0,
     qualityScore: 0
   });
+
+  const [liveStats, setLiveStats] = useState({
+    heartbeat: 72,
+    coffeeCount: 4,
+    hoursWorked: 8.5,
+    linesOfCode: 1247,
+    creativityLevel: 85
+  });
+
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    // Update time every second
+    const timeInterval = setInterval(() => {
+      setTime(new Date());
+    }, 1000);
+
+    // Animate live stats
+    const statsInterval = setInterval(() => {
+      setLiveStats(prev => ({
+        heartbeat: 72 + Math.floor(Math.sin(Date.now() / 1000) * 8),
+        coffeeCount: prev.coffeeCount + (Math.random() > 0.995 ? 1 : 0),
+        hoursWorked: prev.hoursWorked + 0.005,
+        linesOfCode: prev.linesOfCode + Math.floor(Math.random() * 3),
+        creativityLevel: 85 + Math.floor(Math.sin(Date.now() / 2000) * 15)
+      }));
+    }, 1000);
+
+    return () => {
+      clearInterval(timeInterval);
+      clearInterval(statsInterval);
+    };
+  }, []);
 
   useEffect(() => {
     // Animate counters
@@ -76,28 +108,67 @@ const Pulse = () => {
       label: "Active Projects",
       value: metrics.projects,
       suffix: "+",
-      color: "text-blue-400"
+      color: "text-blue-400",
+      pulse: true
     },
     {
-      icon: <TrendingUp className="w-8 h-8" />,
+      icon: <Users className="w-8 h-8" />,
       label: "Happy Clients",
       value: metrics.clients,
       suffix: "+",
-      color: "text-green-400"
+      color: "text-green-400",
+      pulse: false
     },
     {
-      icon: <Zap className="w-8 h-8" />,
+      icon: <Award className="w-8 h-8" />,
       label: "Satisfaction Rate",
       value: metrics.satisfaction,
       suffix: "%",
-      color: "text-yellow-400"
+      color: "text-yellow-400",
+      pulse: false
     },
     {
-      icon: <BarChart3 className="w-8 h-8" />,
+      icon: <Rocket className="w-8 h-8" />,
       label: "Growth Rate",
       value: metrics.growth,
       suffix: "%",
-      color: "text-purple-400"
+      color: "text-purple-400",
+      pulse: false
+    }
+  ];
+
+  const liveStatsData = [
+    {
+      icon: <Heart className="w-6 h-6" />,
+      label: "Studio Heartbeat",
+      value: liveStats.heartbeat,
+      suffix: " BPM",
+      color: "text-red-400",
+      animate: true
+    },
+    {
+      icon: <Coffee className="w-6 h-6" />,
+      label: "Coffee Count",
+      value: Math.floor(liveStats.coffeeCount),
+      suffix: " cups",
+      color: "text-yellow-500",
+      animate: false
+    },
+    {
+      icon: <Timer className="w-6 h-6" />,
+      label: "Hours Today",
+      value: liveStats.hoursWorked.toFixed(1),
+      suffix: "h",
+      color: "text-blue-400",
+      animate: false
+    },
+    {
+      icon: <Brain className="w-6 h-6" />,
+      label: "Creativity Level",
+      value: Math.floor(liveStats.creativityLevel),
+      suffix: "%",
+      color: "text-purple-400",
+      animate: true
     }
   ];
 
@@ -154,14 +225,35 @@ const Pulse = () => {
                 Studio Pulse
               </h1>
             </div>
-            <p className="text-xl text-foreground/70 max-w-2xl mx-auto">
+            <p className="text-xl text-foreground/70 max-w-2xl mx-auto mb-6">
               📊 Real-time insights into our studio's heartbeat. 
               Track our journey, growth, and impact in the design world.
             </p>
-            <div className="mt-4 text-sm text-foreground/50">
-              <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full">
+            <div className="flex items-center justify-center gap-4 mb-4">
+              <span className="bg-green-500/20 text-green-400 px-3 py-1 rounded-full text-sm animate-pulse">
                 ✅ Live Data
               </span>
+              <span className="text-sm text-foreground/60">
+                Last updated: {time.toLocaleTimeString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Live Stats Bar */}
+          <div className="glass p-6 rounded-3xl mb-8">
+            <h2 className="text-xl font-bold text-gradient mb-4 text-center">🔴 Live Studio Stats</h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {liveStatsData.map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className={`${stat.color} mb-2 flex justify-center ${stat.animate ? 'animate-pulse' : ''}`}>
+                    {stat.icon}
+                  </div>
+                  <div className="text-lg font-bold text-gradient">
+                    {stat.value}{stat.suffix}
+                  </div>
+                  <div className="text-xs text-foreground/70">{stat.label}</div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -170,7 +262,7 @@ const Pulse = () => {
             {pulseData.map((metric, index) => (
               <div 
                 key={index}
-                className="glass p-8 rounded-3xl text-center hover:bg-white/10 transition-all duration-500 glow-hover animate-fade-in"
+                className={`glass p-8 rounded-3xl text-center hover:bg-white/10 transition-all duration-500 glow-hover animate-fade-in ${metric.pulse ? 'animate-pulse' : ''}`}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 <div className={`${metric.color} mb-4 flex justify-center`}>
@@ -186,10 +278,61 @@ const Pulse = () => {
             ))}
           </div>
 
+          {/* Fun Interactive Elements */}
+          <div className="grid lg:grid-cols-2 gap-8 mb-16">
+            {/* Mood Indicator */}
+            <div className="glass p-8 rounded-3xl">
+              <h3 className="text-2xl font-bold text-gradient mb-6 text-center">😄 Studio Mood</h3>
+              <div className="flex items-center justify-center mb-4">
+                <div className="text-6xl animate-bounce-subtle">
+                  {liveStats.creativityLevel > 90 ? '🚀' : 
+                   liveStats.creativityLevel > 70 ? '😊' : 
+                   liveStats.creativityLevel > 50 ? '😐' : '😴'}
+                </div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-bold text-gradient mb-2">
+                  {liveStats.creativityLevel > 90 ? 'Extremely Creative!' : 
+                   liveStats.creativityLevel > 70 ? 'Feeling Great!' : 
+                   liveStats.creativityLevel > 50 ? 'Steady Flow' : 'Need Coffee!'}
+                </div>
+                <Progress value={liveStats.creativityLevel} className="h-3 bg-white/10" />
+              </div>
+            </div>
+
+            {/* Current Activity */}
+            <div className="glass p-8 rounded-3xl">
+              <h3 className="text-2xl font-bold text-gradient mb-6 text-center">🎯 Current Focus</h3>
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 p-3 bg-blue-500/20 rounded-lg">
+                  <Target className="w-5 h-5 text-blue-400" />
+                  <div>
+                    <div className="font-semibold text-blue-400">Brand Identity Design</div>
+                    <div className="text-xs text-blue-300">Premium project in progress</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-green-500/20 rounded-lg">
+                  <Zap className="w-5 h-5 text-green-400" />
+                  <div>
+                    <div className="font-semibold text-green-400">Website Development</div>
+                    <div className="text-xs text-green-300">Interactive experience</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-purple-500/20 rounded-lg">
+                  <Brain className="w-5 h-5 text-purple-400" />
+                  <div>
+                    <div className="font-semibold text-purple-400">Creative Strategy</div>
+                    <div className="text-xs text-purple-300">Innovation session</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* Progress Metrics */}
           <div className="glass p-8 rounded-3xl mb-16">
             <h2 className="text-3xl font-bold text-gradient mb-8 text-center">
-              Performance Metrics
+              📈 Performance Metrics
             </h2>
             
             <div className="grid md:grid-cols-2 gap-8">
@@ -216,7 +359,7 @@ const Pulse = () => {
           {/* Current Status */}
           <div className="glass p-8 rounded-3xl mb-16">
             <h2 className="text-3xl font-bold text-gradient mb-8 text-center">
-              Current Status
+              🌟 Current Status
             </h2>
             
             <div className="grid md:grid-cols-2 gap-8">
@@ -262,6 +405,28 @@ const Pulse = () => {
                     <span>New studio processes implemented</span>
                   </li>
                 </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Fun Data Visualization */}
+          <div className="glass p-8 rounded-3xl mb-16">
+            <h2 className="text-3xl font-bold text-gradient mb-8 text-center">📊 This Week's Journey</h2>
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="text-center">
+                <div className="text-3xl mb-2">☕</div>
+                <div className="text-2xl font-bold text-gradient">27</div>
+                <div className="text-sm text-foreground/70">Cups of coffee</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-2">🎨</div>
+                <div className="text-2xl font-bold text-gradient">142</div>
+                <div className="text-sm text-foreground/70">Design iterations</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl mb-2">💡</div>
+                <div className="text-2xl font-bold text-gradient">18</div>
+                <div className="text-sm text-foreground/70">Eureka moments</div>
               </div>
             </div>
           </div>
