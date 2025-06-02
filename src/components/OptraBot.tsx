@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Heart, Zap } from 'lucide-react';
+import { MessageCircle, X, Send, Sparkles, Heart, Zap, User, Bot } from 'lucide-react';
 
 const OptraBot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -20,25 +20,29 @@ const OptraBot = () => {
     "What services do you offer?",
     "Show me the blog",
     "Schedule a meeting",
-    "SUDO mode access"
+    "Contact form"
   ];
 
   const botResponses: { [key: string]: string } = {
     "aniketh": "Aniketh is the passionate founder behind Optra Design! 🎨 Based in Bangalore, he's a solo creative force who believes in the power of exceptional design to transform businesses. He founded Optra with a vision to deliver hyper-premium experiences that truly matter. Check out the /founder page to learn more about his journey! ✨",
     "founder": "Aniketh founded Optra Design as a solo venture in Bangalore! 🚀 He's passionate about creating design solutions that don't just look beautiful, but drive real business results. His philosophy: every pixel should have a purpose, every interaction should feel intentional. Want to meet him? He's usually just an email away! 😊",
     "services": "Optra specializes in premium digital experiences! 🎯 We offer brand identity design, interactive web experiences, creative direction, and strategic consultation. Each project is crafted with meticulous attention to detail by Aniketh himself. What specific service interests you? 🎨",
-    "meeting": "I'd love to help you connect with Aniketh! 📅 For the fastest response, reach out to aniketh@optra.me - you'll hear back within 48 hours. Or share your project details here and I'll make sure they reach him! He's always excited to discuss new projects. ✨",
+    "meeting": "I'd love to help you connect with Aniketh! 📅 For the fastest response, reach out to aniketh@optra.me - you'll hear back within 48 hours. Or use our contact form to share your project details! He's always excited to discuss new projects. ✨",
     "work": "Our portfolio showcases transformative brand identities and digital experiences that drive results! 🌟 Each project tells a unique story of creativity meeting strategy. Unfortunately, we removed the work page to focus on new exciting features, but you can always email Aniketh for case studies! 📧",
     "blog": "Check out our new blog at /blog! 📝 Aniketh shares insights about design, creativity, and the journey of building exceptional experiences. It's where strategy meets storytelling! ✨",
     "sudo": "Psst... 🤫 Looking for SUDO mode? Try clicking the top-left corner of the screen or press Ctrl+Shift+S. Only true design nerds find this! 😉 There might be other easter eggs hidden around too... 🥚",
-    "contact": "Ready to create something amazing? 🚀 Reach out to aniketh@optra.me and let's start the conversation! Aniketh personally responds to every inquiry within 48 hours. Based in Bangalore but working globally! 🌍"
+    "contact": "Ready to create something amazing? 🚀 I can help you get in touch with Aniketh! You can reach out to aniketh@optra.me or use our contact form for project details. Aniketh personally responds to every inquiry within 48 hours. Based in Bangalore but working globally! 🌍",
+    "form": "I can show you our contact form! 📝 It's perfect for sharing detailed project information. Would you like me to help you fill it out or guide you to it?",
+    "help": "I'm here to help! 🤖 I can tell you about Aniketh, our services, guide you to our blog, help you schedule a meeting, or show you our contact form. I can also share some hidden features if you're curious! What would you like to know? ✨",
+    "pricing": "Great question! 💰 Our pricing varies based on project scope and requirements. Each project is unique, so Aniketh prefers to discuss your specific needs first. Reach out via aniketh@optra.me or our contact form for a personalized quote! 📊",
+    "timeline": "Project timelines depend on scope and complexity! ⏰ Typically, brand identity projects take 2-4 weeks, while full digital experiences can take 4-8 weeks. Aniketh believes in quality over speed - every detail matters! For your specific project timeline, let's get you connected with him! 🚀"
   };
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!isOpen && messages.length === 1) {
         setIsOpen(true);
-        addBotMessage("Still exploring? I'm here if you need a guide through Aniketh's design universe! Try asking about SUDO mode for some hidden features 🎉");
+        addBotMessage("Still exploring? I'm here if you need a guide through Aniketh's design universe! Try asking about our contact form or hidden features 🎉");
       }
     }, 30000);
 
@@ -55,7 +59,7 @@ const OptraBot = () => {
         timestamp: new Date()
       }]);
       setIsTyping(false);
-    }, 1000);
+    }, 1000 + Math.random() * 1000);
   };
 
   const handleSendMessage = (text: string) => {
@@ -76,7 +80,9 @@ const OptraBot = () => {
       responseKey = lowercaseText.includes('aniketh') ? 'aniketh' : 'founder';
     } else if (lowercaseText.includes('service') || lowercaseText.includes('what') || lowercaseText.includes('do')) {
       responseKey = 'services';
-    } else if (lowercaseText.includes('meeting') || lowercaseText.includes('schedule') || lowercaseText.includes('contact')) {
+    } else if (lowercaseText.includes('meeting') || lowercaseText.includes('schedule') || lowercaseText.includes('appointment')) {
+      responseKey = 'meeting';
+    } else if (lowercaseText.includes('contact') || lowercaseText.includes('reach') || lowercaseText.includes('email')) {
       responseKey = 'contact';
     } else if (lowercaseText.includes('work') || lowercaseText.includes('portfolio') || lowercaseText.includes('project')) {
       responseKey = 'work';
@@ -84,8 +90,16 @@ const OptraBot = () => {
       responseKey = 'blog';
     } else if (lowercaseText.includes('sudo') || lowercaseText.includes('admin') || lowercaseText.includes('hidden')) {
       responseKey = 'sudo';
+    } else if (lowercaseText.includes('form') || lowercaseText.includes('contact form')) {
+      responseKey = 'form';
+    } else if (lowercaseText.includes('help') || lowercaseText.includes('assist') || lowercaseText.includes('guide')) {
+      responseKey = 'help';
+    } else if (lowercaseText.includes('price') || lowercaseText.includes('cost') || lowercaseText.includes('budget')) {
+      responseKey = 'pricing';
+    } else if (lowercaseText.includes('time') || lowercaseText.includes('deadline') || lowercaseText.includes('duration')) {
+      responseKey = 'timeline';
     } else {
-      addBotMessage("That's an interesting question! 🤔 I'm still learning, but Aniketh would love to chat about it directly. Reach out to aniketh@optra.me for detailed discussions! In the meantime, try exploring our services or checking out the founder's story. Any other questions? 😊");
+      addBotMessage("That's an interesting question! 🤔 I'm still learning, but I can help you with information about Aniketh, our services, contact details, pricing, timelines, or even show you some hidden features! What would you like to know more about? 😊");
       return;
     }
 
@@ -120,25 +134,37 @@ const OptraBot = () => {
                 key={message.id}
                 className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}
               >
-                <div
-                  className={`max-w-xs p-3 rounded-2xl ${
-                    message.isBot
-                      ? 'bg-white/10 text-foreground border border-white/20'
-                      : 'bg-optra-gradient text-white'
-                  }`}
-                >
-                  <p className="text-sm leading-relaxed">{message.text}</p>
+                <div className={`flex items-end gap-2 max-w-xs ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    message.isBot ? 'bg-optra-gradient' : 'bg-white/20'
+                  }`}>
+                    {message.isBot ? <Bot size={12} /> : <User size={12} />}
+                  </div>
+                  <div
+                    className={`p-3 rounded-2xl ${
+                      message.isBot
+                        ? 'bg-white/10 text-foreground border border-white/20'
+                        : 'bg-optra-gradient text-white'
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed">{message.text}</p>
+                  </div>
                 </div>
               </div>
             ))}
             
             {isTyping && (
               <div className="flex justify-start">
-                <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
-                  <div className="flex gap-1">
-                    <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce"></div>
-                    <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                    <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="flex items-end gap-2 max-w-xs">
+                  <div className="w-6 h-6 rounded-full bg-optra-gradient flex items-center justify-center">
+                    <Bot size={12} />
+                  </div>
+                  <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
+                    <div className="flex gap-1">
+                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                    </div>
                   </div>
                 </div>
               </div>
