@@ -1,9 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
-import { MessageCircle, X, Send, Sparkles, Heart, Zap, User, Bot } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageCircle, X, Send, Sparkles, Heart, Zap, User, Bot, Minimize2, Maximize2 } from 'lucide-react';
+import { useIsMobile } from '../hooks/use-mobile';
 
 const OptraBot = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -14,13 +16,24 @@ const OptraBot = () => {
   ]);
   const [inputText, setInputText] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isTyping]);
 
   const quickReplies = [
     "Tell me about Aniketh",
     "What services do you offer?",
     "Show me the blog",
     "Schedule a meeting",
-    "Contact form"
+    "Contact form",
+    "Pricing info"
   ];
 
   const botResponses: { [key: string]: string } = {
@@ -106,6 +119,11 @@ const OptraBot = () => {
     addBotMessage(botResponses[responseKey]);
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    setIsMinimized(false);
+  };
+
   return (
     <>
       <button
@@ -118,91 +136,123 @@ const OptraBot = () => {
       </button>
 
       {isOpen && (
-        <div className="fixed bottom-28 right-6 z-50 w-80 h-96 bg-background/95 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl flex flex-col animate-slide-in-right glow-hover">
-          <div className="p-4 border-b border-white/20 flex items-center gap-3">
-            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
-            <div>
-              <h3 className="font-bold text-gradient">OptraBot</h3>
-              <p className="text-xs text-foreground/70">Aniketh's AI assistant</p>
-            </div>
-            <Sparkles className="w-4 h-4 text-gradient ml-auto animate-spin" style={{ animationDuration: '3s' }} />
-          </div>
-
-          <div className="flex-1 p-4 overflow-y-auto space-y-4">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}
-              >
-                <div className={`flex items-end gap-2 max-w-xs ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    message.isBot ? 'bg-optra-gradient' : 'bg-white/20'
-                  }`}>
-                    {message.isBot ? <Bot size={12} /> : <User size={12} />}
-                  </div>
-                  <div
-                    className={`p-3 rounded-2xl ${
-                      message.isBot
-                        ? 'bg-white/10 text-foreground border border-white/20'
-                        : 'bg-optra-gradient text-white'
-                    }`}
-                  >
-                    <p className="text-sm leading-relaxed">{message.text}</p>
-                  </div>
+        <div className={`fixed z-50 bg-background/95 backdrop-blur-lg border border-white/30 rounded-3xl shadow-2xl flex flex-col animate-slide-in-right glow-hover transition-all duration-300 ${
+          isMobile 
+            ? isMinimized 
+              ? 'bottom-28 right-6 w-16 h-16' 
+              : 'bottom-6 left-4 right-4 h-[70vh]'
+            : isMinimized 
+              ? 'bottom-28 right-6 w-16 h-16'
+              : 'bottom-28 right-6 w-80 h-96'
+        }`}>
+          {isMinimized ? (
+            <button
+              onClick={() => setIsMinimized(false)}
+              className="w-full h-full flex items-center justify-center text-gradient hover:scale-110 transition-transform"
+            >
+              <Maximize2 className="w-6 h-6" />
+            </button>
+          ) : (
+            <>
+              <div className="p-4 border-b border-white/20 flex items-center gap-3">
+                <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+                <div className="flex-1">
+                  <h3 className="font-bold text-gradient">OptraBot</h3>
+                  <p className="text-xs text-foreground/70">Aniketh's AI assistant</p>
                 </div>
+                <button
+                  onClick={() => setIsMinimized(true)}
+                  className="p-1 text-foreground/60 hover:text-foreground transition-colors"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={handleClose}
+                  className="p-1 text-foreground/60 hover:text-foreground transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+                <Sparkles className="w-4 h-4 text-gradient animate-spin" style={{ animationDuration: '3s' }} />
               </div>
-            ))}
-            
-            {isTyping && (
-              <div className="flex justify-start">
-                <div className="flex items-end gap-2 max-w-xs">
-                  <div className="w-6 h-6 rounded-full bg-optra-gradient flex items-center justify-center">
-                    <Bot size={12} />
-                  </div>
-                  <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
-                    <div className="flex gap-1">
-                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+
+              <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                {messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.isBot ? 'justify-start' : 'justify-end'} animate-fade-in`}
+                  >
+                    <div className={`flex items-end gap-2 max-w-xs ${message.isBot ? 'flex-row' : 'flex-row-reverse'}`}>
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        message.isBot ? 'bg-optra-gradient' : 'bg-white/20'
+                      }`}>
+                        {message.isBot ? <Bot size={12} /> : <User size={12} />}
+                      </div>
+                      <div
+                        className={`p-3 rounded-2xl ${
+                          message.isBot
+                            ? 'bg-white/10 text-foreground border border-white/20'
+                            : 'bg-optra-gradient text-white'
+                        }`}
+                      >
+                        <p className="text-sm leading-relaxed">{message.text}</p>
+                      </div>
                     </div>
                   </div>
+                ))}
+                
+                {isTyping && (
+                  <div className="flex justify-start">
+                    <div className="flex items-end gap-2 max-w-xs">
+                      <div className="w-6 h-6 rounded-full bg-optra-gradient flex items-center justify-center">
+                        <Bot size={12} />
+                      </div>
+                      <div className="bg-white/10 p-3 rounded-2xl border border-white/20">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce"></div>
+                          <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                          <div className="w-2 h-2 bg-foreground/50 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+
+              <div className="p-3 border-t border-white/20">
+                <div className="flex flex-wrap gap-1 mb-3">
+                  {quickReplies.slice(0, isMobile ? 2 : 3).map((reply, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSendMessage(reply)}
+                      className="text-xs px-3 py-1 bg-white/10 rounded-full hover:bg-white/20 transition-all hover:scale-105 border border-white/20"
+                    >
+                      {reply}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
-          </div>
 
-          <div className="p-3 border-t border-white/20">
-            <div className="flex flex-wrap gap-1 mb-3">
-              {quickReplies.slice(0, 3).map((reply, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSendMessage(reply)}
-                  className="text-xs px-3 py-1 bg-white/10 rounded-full hover:bg-white/20 transition-all hover:scale-105 border border-white/20"
-                >
-                  {reply}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-4 border-t border-white/20">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && inputText.trim() && handleSendMessage(inputText)}
-                placeholder="Ask me anything..."
-                className="flex-1 bg-white/10 border border-white/30 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-white/50 transition-colors"
-              />
-              <button
-                onClick={() => inputText.trim() && handleSendMessage(inputText)}
-                className="w-10 h-10 bg-optra-gradient rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200"
-              >
-                <Send size={16} />
-              </button>
-            </div>
-          </div>
+              <div className="p-4 border-t border-white/20">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && inputText.trim() && handleSendMessage(inputText)}
+                    placeholder="Ask me anything..."
+                    className="flex-1 bg-white/10 border border-white/30 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-white/50 transition-colors"
+                  />
+                  <button
+                    onClick={() => inputText.trim() && handleSendMessage(inputText)}
+                    className="w-10 h-10 bg-optra-gradient rounded-full flex items-center justify-center hover:scale-105 transition-transform duration-200"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
     </>
