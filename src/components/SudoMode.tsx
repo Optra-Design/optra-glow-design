@@ -16,7 +16,8 @@ const SudoMode = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [touchCount, setTouchCount] = useState(0);
-  const { isLoggedIn, login, logout, user } = useAuth();
+  const { user, signIn, signOut } = useAuth();
+  const isLoggedIn = !!user;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
@@ -176,9 +177,10 @@ const SudoMode = () => {
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (login(email, password)) {
+    const { error } = await signIn(email, password);
+    if (!error) {
       setShowLogin(false);
       setEmail('');
       setPassword('');
@@ -249,7 +251,7 @@ const SudoMode = () => {
                       <div className="text-xs text-green-400/70">Founder & Admin</div>
                     </div>
                     <button
-                      onClick={logout}
+                      onClick={signOut}
                       className="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
                     >
                       <LogOut className="w-4 h-4" />

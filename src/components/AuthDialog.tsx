@@ -1,0 +1,165 @@
+
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { LogIn, UserPlus, Mail, Lock, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'sonner';
+
+interface AuthDialogProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const AuthDialog: React.FC<AuthDialogProps> = ({ open, onClose }) => {
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [name, setName] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { signIn, signUp } = useAuth();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+
+    try {
+      let result;
+      
+      if (isLogin) {
+        result = await signIn(email, password);
+        if (result.error) {
+          if (result.error.message?.includes('Email not confirmed')) {
+            setError('Please check your email and click the confirmation link before signing in.');
+          } else if (result.error.message?.includes('Invalid login credentials')) {
+            setError('Invalid email or password');
+          } else {
+            setError(result.error.message || 'Invalid credentials');
+          }
+        } else {
+          toast.success('Welcome back!');
+          onClose();
+          setEmail('');
+          setPassword('');
+          setName('');
+        }
+      } else {
+        if (!name.trim()) {
+          setError('Name is required');
+          setLoading(false);
+          return;
+        }
+        result = await signUp(email, password, name);
+        if (result.error) {
+          if (result.error.message?.includes('already registered')) {
+            setError('Email already exists. Please try logging in instead.');
+          } else {
+            setError(result.error.message || 'Registration failed');
+          }
+        } else {
+          toast.success('Registration successful! Please check your email to confirm your account.');
+          onClose();
+          setEmail('');
+          setPassword('');
+          setName('');
+        }
+      }
+    } catch (err) {
+      console.error('Auth error:', err);
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="glass">
+        <DialogHeader>
+          <DialogTitle className="text-gradient flex items-center gap-2">
+            {isLogin ? <LogIn className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
+            {isLogin ? 'Login to Optra' : 'Join Optra Community'}
+          </DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground/80">Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/50" />
+                <Input
+                  type="text"
+                  placeholder="Your name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-10 bg-white/10 border-white/20"
+                  required={!isLogin}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground/80">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/50" />
+              <Input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="pl-10 bg-white/10 border-white/20"
+                required
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground/80">Password</label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-foreground/50" />
+              <Input
+                type="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="pl-10 bg-white/10 border-white/20"
+                required
+              />
+            </div>
+          </div>
+
+          {error && (
+            <div className="text-red-400 text-sm bg-red-500/10 p-3 rounded-lg">
+              {error}
+            </div>
+          )}
+
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-optra-gradient hover:scale-105 transition-all"
+          >
+            {loading ? 'Please wait...' : (isLogin ? 'Login' : 'Create Account')}
+          </Button>
+
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => setIsLogin(!isLogin)}
+              className="text-sm text-foreground/60 hover:text-foreground transition-colors"
+            >
+              {isLogin ? "Don't have an account? Sign up" : "Already have an account? Login"}
+            </button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default AuthDialog;

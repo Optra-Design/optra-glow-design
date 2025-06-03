@@ -5,7 +5,6 @@ import { Activity, TrendingUp, Zap, BarChart3, Heart, Rocket, Users, Coffee, Tim
 
 const Pulse = () => {
   const [metrics, setMetrics] = useState({
-    projects: 0,
     clients: 0,
     satisfaction: 0,
     growth: 0
@@ -30,7 +29,24 @@ const Pulse = () => {
 
   const [time, setTime] = useState(new Date());
 
+  // Generate user-specific coffee count based on session
+  const getUserCoffeeCount = () => {
+    const userId = sessionStorage.getItem('user-coffee-id') || Math.random().toString(36).substr(2, 9);
+    sessionStorage.setItem('user-coffee-id', userId);
+    
+    // Create consistent coffee count for this user session
+    const hash = userId.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return Math.abs(hash % 8) + 2; // Between 2-10 cups
+  };
+
   useEffect(() => {
+    // Set user-specific coffee count
+    const userCoffeeCount = getUserCoffeeCount();
+    setLiveStats(prev => ({ ...prev, coffeeCount: userCoffeeCount }));
+
     // Update time every second
     const timeInterval = setInterval(() => {
       setTime(new Date());
@@ -40,7 +56,7 @@ const Pulse = () => {
     const statsInterval = setInterval(() => {
       setLiveStats(prev => ({
         heartbeat: 72 + Math.floor(Math.sin(Date.now() / 1000) * 8),
-        coffeeCount: prev.coffeeCount + (Math.random() > 0.995 ? 1 : 0),
+        coffeeCount: prev.coffeeCount + (Math.random() > 0.998 ? 1 : 0),
         hoursWorked: prev.hoursWorked + 0.005,
         linesOfCode: prev.linesOfCode + Math.floor(Math.random() * 3),
         creativityLevel: 85 + Math.floor(Math.sin(Date.now() / 2000) * 15)
@@ -88,10 +104,9 @@ const Pulse = () => {
       }, delay);
     };
 
-    setTimeout(() => animateValue('projects', 47), 200);
-    setTimeout(() => animateValue('clients', 23), 400);
-    setTimeout(() => animateValue('satisfaction', 100), 600);
-    setTimeout(() => animateValue('growth', 250), 800);
+    setTimeout(() => animateValue('clients', 23), 200);
+    setTimeout(() => animateValue('satisfaction', 93), 400);
+    setTimeout(() => animateValue('growth', 250), 600);
 
     // Animate progress bars with staggered delays
     setTimeout(() => animateProgress('projectCompletion', 87, 1000), 0);
@@ -103,14 +118,6 @@ const Pulse = () => {
   }, []);
 
   const pulseData = [
-    {
-      icon: <Activity className="w-8 h-8" />,
-      label: "Active Projects",
-      value: metrics.projects,
-      suffix: "+",
-      color: "text-blue-400",
-      pulse: true
-    },
     {
       icon: <Users className="w-8 h-8" />,
       label: "Happy Clients",
@@ -148,7 +155,7 @@ const Pulse = () => {
     },
     {
       icon: <Coffee className="w-6 h-6" />,
-      label: "Coffee Count",
+      label: "Your Coffee Count",
       value: Math.floor(liveStats.coffeeCount),
       suffix: " cups",
       color: "text-yellow-500",
@@ -258,7 +265,7 @@ const Pulse = () => {
           </div>
 
           {/* Metrics Grid */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-8 mb-16">
             {pulseData.map((metric, index) => (
               <div 
                 key={index}
@@ -398,7 +405,7 @@ const Pulse = () => {
                   </li>
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-gradient-to-r from-green-400 to-blue-400 rounded-full"></div>
-                    <span>100% client satisfaction maintained</span>
+                    <span>93% client satisfaction maintained</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"></div>
