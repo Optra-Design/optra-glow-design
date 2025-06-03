@@ -88,7 +88,7 @@ const generateEnhancedResponse = (userMessage: string): LLMResponse => {
 
   // Find matching response category
   let responseCategory = 'default';
-  for (const [key, responses] of Object.entries(responses)) {
+  for (const [key, categoryResponses] of Object.entries(responses)) {
     if (lowercaseMessage.includes(key) || 
         (key === 'aniketh' && (lowercaseMessage.includes('founder') || lowercaseMessage.includes('who'))) ||
         (key === 'services' && (lowercaseMessage.includes('what') || lowercaseMessage.includes('do'))) ||
