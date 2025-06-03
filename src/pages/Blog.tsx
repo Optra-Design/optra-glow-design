@@ -15,7 +15,7 @@ interface BlogPost {
   author_id: string;
   published: boolean;
   created_at: string;
-  profiles?: { name: string };
+  author_name?: string;
 }
 
 const Blog = () => {
@@ -35,22 +35,48 @@ const Blog = () => {
   const loadPosts = async () => {
     setPostsLoading(true);
     try {
-      const { data, error } = await supabase
+      // Get posts and manually join with profiles
+      const { data: postsData, error: postsError } = await supabase
         .from('blog_posts')
-        .select(`
-          *,
-          profiles(name)
-        `)
+        .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error loading posts:', error);
+      if (postsError) {
+        console.error('Error loading posts:', postsError);
         toast.error('Failed to load posts');
         setPosts([]);
-      } else {
-        setPosts(data || []);
+        return;
       }
+
+      if (!postsData || postsData.length === 0) {
+        setPosts([]);
+        return;
+      }
+
+      // Get unique author IDs
+      const authorIds = [...new Set(postsData.map(post => post.author_id))];
+      
+      // Fetch author profiles
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', authorIds);
+
+      const profilesMap = new Map();
+      if (!profilesError && profilesData) {
+        profilesData.forEach(profile => {
+          profilesMap.set(profile.id, profile.name);
+        });
+      }
+
+      // Combine posts with author names
+      const postsWithAuthors: BlogPost[] = postsData.map(post => ({
+        ...post,
+        author_name: profilesMap.get(post.author_id) || 'Unknown Author'
+      }));
+
+      setPosts(postsWithAuthors);
     } catch (error) {
       console.error('Unexpected error loading posts:', error);
       toast.error('Unexpected error loading posts');
@@ -258,7 +284,7 @@ const Blog = () => {
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4" />
                             <span className="font-semibold text-gradient">
-                              {post.profiles?.name || 'Unknown Author'}
+                              {post.author_name || 'Unknown Author'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">

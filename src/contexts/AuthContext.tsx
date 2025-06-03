@@ -10,6 +10,8 @@ interface Profile {
   email: string;
   name: string;
   role: 'admin' | 'customer' | 'user';
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
@@ -50,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
         console.log('Auth state change:', event, session?.user?.email);
@@ -73,7 +75,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               
               if (!error && profileData && mounted) {
                 console.log('Profile loaded:', profileData);
-                setProfile(profileData);
+                // Ensure the role is properly typed
+                const typedProfile: Profile = {
+                  id: profileData.id,
+                  email: profileData.email,
+                  name: profileData.name,
+                  role: (profileData.role === 'admin' || profileData.role === 'customer' || profileData.role === 'user') 
+                    ? profileData.role 
+                    : 'user',
+                  created_at: profileData.created_at,
+                  updated_at: profileData.updated_at
+                };
+                setProfile(typedProfile);
               } else {
                 console.log('Profile not found, creating default for founder...');
                 // Create a default profile for the founder if it doesn't exist

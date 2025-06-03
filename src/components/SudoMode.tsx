@@ -1,8 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { Settings, Palette, Layout, Zap, LogIn, LogOut, User, Sparkles, Smartphone, Bug, Minimize2, Maximize2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { useIsMobile } from '../hooks/use-mobile';
+import { toast } from 'sonner';
 
 const SudoMode = () => {
   const [isActive, setIsActive] = useState(false);
@@ -16,7 +18,7 @@ const SudoMode = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [touchCount, setTouchCount] = useState(0);
-  const { user, signIn, signOut } = useAuth();
+  const { user, profile, signIn, signOut, isAdmin } = useAuth();
   const isLoggedIn = !!user;
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -179,14 +181,22 @@ const SudoMode = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const { error } = await signIn(email, password);
-    if (!error) {
-      setShowLogin(false);
-      setEmail('');
-      setPassword('');
-      console.log('🎉 Welcome back, Aniketh! Admin powers activated.');
-    } else {
-      alert('❌ Invalid credentials - only Aniketh has access!');
+    
+    try {
+      const { error } = await signIn(email, password);
+      if (!error) {
+        setShowLogin(false);
+        setEmail('');
+        setPassword('');
+        toast.success('🎉 Welcome back, Aniketh! Admin powers activated.');
+        console.log('🎉 Welcome back, Aniketh! Admin powers activated.');
+      } else {
+        toast.error('❌ Invalid credentials - only Aniketh has access!');
+        console.error('❌ Invalid credentials - only Aniketh has access!');
+      }
+    } catch (error) {
+      toast.error('❌ Login failed - please try again');
+      console.error('Login error:', error);
     }
   };
 
@@ -242,13 +252,15 @@ const SudoMode = () => {
           
           <div className="space-y-6">
             <div className="border-b border-white/20 pb-4">
-              {isLoggedIn ? (
+              {isLoggedIn && profile ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 p-3 bg-green-500/20 rounded-xl">
                     <User className="w-5 h-5 text-green-400" />
                     <div className="flex-1">
-                      <div className="text-sm font-bold text-green-400">Aniketh</div>
-                      <div className="text-xs text-green-400/70">Founder & Admin</div>
+                      <div className="text-sm font-bold text-green-400">{profile.name}</div>
+                      <div className="text-xs text-green-400/70">
+                        {isAdmin ? 'Founder & Admin' : 'User'}
+                      </div>
                     </div>
                     <button
                       onClick={signOut}
@@ -276,6 +288,7 @@ const SudoMode = () => {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full p-3 text-sm bg-white/10 border border-white/30 rounded-xl focus:border-white/50 transition-colors"
+                        required
                       />
                       <input
                         type="password"
@@ -283,6 +296,7 @@ const SudoMode = () => {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full p-3 text-sm bg-white/10 border border-white/30 rounded-xl focus:border-white/50 transition-colors"
+                        required
                       />
                       <button
                         type="submit"
