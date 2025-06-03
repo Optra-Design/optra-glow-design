@@ -1,11 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
-import AuthDialog from '../components/AuthDialog';
-import { Edit3, Save, Plus, Trash2, Calendar, User, BookOpen, LogIn, LogOut } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { Edit3, Save, Plus, Trash2, Calendar, User, BookOpen } from 'lucide-react';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
 import { supabase } from '../integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 interface BlogPost {
@@ -23,10 +21,9 @@ const Blog = () => {
   const [editingPost, setEditingPost] = useState<string | null>(null);
   const [newPost, setNewPost] = useState({ title: '', content: '' });
   const [showNewPost, setShowNewPost] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
   const [postsLoading, setPostsLoading] = useState(true);
 
-  const { user, profile, signOut, isAdmin, loading } = useAuth();
+  const { isFounderLoggedIn } = useSimpleAuth();
 
   useEffect(() => {
     loadPosts();
@@ -35,7 +32,6 @@ const Blog = () => {
   const loadPosts = async () => {
     setPostsLoading(true);
     try {
-      // Get posts and manually join with profiles
       const { data: postsData, error: postsError } = await supabase
         .from('blog_posts')
         .select('*')
@@ -73,7 +69,7 @@ const Blog = () => {
       // Combine posts with author names
       const postsWithAuthors: BlogPost[] = postsData.map(post => ({
         ...post,
-        author_name: profilesMap.get(post.author_id) || 'Unknown Author'
+        author_name: profilesMap.get(post.author_id) || 'Aniketh'
       }));
 
       setPosts(postsWithAuthors);
@@ -87,7 +83,7 @@ const Blog = () => {
   };
 
   const handleSavePost = async (id: string, title: string, content: string) => {
-    if (!user || !isAdmin) return;
+    if (!isFounderLoggedIn) return;
 
     const { error } = await supabase
       .from('blog_posts')
@@ -104,14 +100,17 @@ const Blog = () => {
   };
 
   const handleCreatePost = async () => {
-    if (!user || !isAdmin || !newPost.title || !newPost.content) return;
+    if (!isFounderLoggedIn || !newPost.title || !newPost.content) return;
 
+    // Use a dummy author_id for now since we removed the complex auth
+    const dummyAuthorId = '00000000-0000-0000-0000-000000000000';
+    
     const { error } = await supabase
       .from('blog_posts')
       .insert({
         title: newPost.title,
         content: newPost.content,
-        author_id: user.id,
+        author_id: dummyAuthorId,
         published: true
       });
 
@@ -126,7 +125,7 @@ const Blog = () => {
   };
 
   const handleDeletePost = async (id: string) => {
-    if (!user || !isAdmin) return;
+    if (!isFounderLoggedIn) return;
 
     if (window.confirm('Are you sure you want to delete this post?')) {
       const { error } = await supabase
@@ -143,7 +142,7 @@ const Blog = () => {
     }
   };
 
-  if (loading || postsLoading) {
+  if (postsLoading) {
     return (
       <div className="min-h-screen">
         <Navigation />
@@ -176,39 +175,8 @@ const Blog = () => {
             </p>
           </div>
 
-          {/* User Controls */}
-          <div className="mb-8 flex justify-between items-center">
-            <div>
-              {user && profile ? (
-                <div className="flex items-center gap-4">
-                  <span className="text-foreground/80">
-                    Welcome, <span className="text-gradient font-semibold">{profile.name}</span>
-                    {isAdmin && <span className="ml-2 text-yellow-400">👑</span>}
-                  </span>
-                  <Button
-                    onClick={signOut}
-                    size="sm"
-                    variant="outline"
-                    className="text-red-400 hover:bg-red-500/20"
-                  >
-                    <LogOut className="w-4 h-4 mr-1" />
-                    Logout
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  onClick={() => setShowAuth(true)}
-                  className="bg-optra-gradient hover:scale-105 transition-all"
-                >
-                  <LogIn className="w-4 h-4 mr-2" />
-                  Login / Join Community
-                </Button>
-              )}
-            </div>
-          </div>
-
           {/* Admin Panel */}
-          {isAdmin && (
+          {isFounderLoggedIn && (
             <div className="mb-8 p-6 glass rounded-3xl glow-hover">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-bold text-gradient">
@@ -267,7 +235,7 @@ const Blog = () => {
                 className="glass p-8 rounded-3xl hover:bg-white/10 transition-all duration-500 glow-hover animate-fade-in"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                {editingPost === post.id && isAdmin ? (
+                {editingPost === post.id && isFounderLoggedIn ? (
                   <EditPostForm 
                     post={post} 
                     onSave={handleSavePost}
@@ -284,7 +252,7 @@ const Blog = () => {
                           <div className="flex items-center gap-2">
                             <User className="w-4 h-4" />
                             <span className="font-semibold text-gradient">
-                              {post.author_name || 'Unknown Author'}
+                              {post.author_name || 'Aniketh'}
                             </span>
                           </div>
                           <div className="flex items-center gap-2">
@@ -294,7 +262,7 @@ const Blog = () => {
                         </div>
                       </div>
                       
-                      {isAdmin && (
+                      {isFounderLoggedIn && (
                         <div className="flex gap-2">
                           <button
                             onClick={() => setEditingPost(post.id)}
@@ -332,8 +300,6 @@ const Blog = () => {
           )}
         </div>
       </div>
-
-      <AuthDialog open={showAuth} onClose={() => setShowAuth(false)} />
     </div>
   );
 };

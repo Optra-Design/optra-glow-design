@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from 'react';
-import { AuthProvider } from "./contexts/AuthContext";
+import { SimpleAuthProvider } from "./contexts/SimpleAuthContext";
 import { UserProvider } from "./contexts/UserContext";
 
 // Eagerly loaded components
@@ -14,7 +14,6 @@ import SudoMode from "./components/SudoMode";
 import DynamicGradients from "./components/DynamicGradients";
 import EasterEggs from "./components/EasterEggs";
 import CustomerChat from "./components/CustomerChat";
-import FounderChat from "./components/FounderChat";
 
 // Lazily loaded components for better performance
 const OptraBot = lazy(() => import("./components/OptraBot"));
@@ -27,6 +26,7 @@ const Lab = lazy(() => import("./pages/Lab"));
 const Pulse = lazy(() => import("./pages/Pulse"));
 const Founder = lazy(() => import("./pages/Founder"));
 const Blog = lazy(() => import("./pages/Blog"));
+const ChatWithAniketh = lazy(() => import("./pages/ChatWithAniketh"));
 const Test404 = lazy(() => import("./pages/Test404"));
 
 const queryClient = new QueryClient();
@@ -40,7 +40,7 @@ const PageLoader = () => (
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
+      <SimpleAuthProvider>
         <UserProvider>
           <Toaster />
           <Sonner />
@@ -50,7 +50,6 @@ const App = () => (
               <BackgroundParticles />
               <EasterEggs />
               <CustomerChat />
-              <FounderChat />
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Index />} />
@@ -61,6 +60,7 @@ const App = () => (
                   <Route path="/pulse" element={<Pulse />} />
                   <Route path="/founder" element={<Founder />} />
                   <Route path="/blog" element={<Blog />} />
+                  <Route path="/chat" element={<ChatWithAniketh />} />
                   <Route path="/test-404" element={<Test404 />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -72,7 +72,7 @@ const App = () => (
             </div>
           </BrowserRouter>
         </UserProvider>
-      </AuthProvider>
+      </SimpleAuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -2,15 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, LogIn, LogOut, User as UserIcon } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import AuthDialog from './AuthDialog';
+import { useSimpleAuth } from '../contexts/SimpleAuthContext';
+import SimpleLoginDialog from './SimpleLoginDialog';
 
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
   const location = useLocation();
-  const { user, profile, signOut, loading } = useAuth();
+  const { isFounderLoggedIn, logout } = useSimpleAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +29,7 @@ const Navigation = () => {
     { name: 'Pulse', path: '/pulse' },
     { name: 'Founder', path: '/founder' },
     { name: 'Blog', path: '/blog' },
+    { name: 'Chat with Aniketh', path: '/chat' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -74,34 +75,31 @@ const Navigation = () => {
             {/* Auth & Mobile menu */}
             <div className="flex items-center gap-4">
               {/* Auth Button */}
-              {!loading && (
-                <div className="hidden lg:block">
-                  {user && profile ? (
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm text-foreground/80">
-                        <UserIcon className="w-4 h-4 inline mr-1" />
-                        {profile.name}
-                        {profile.role === 'admin' && <span className="ml-1 text-yellow-400">👑</span>}
-                        {profile.role === 'customer' && <span className="ml-1 text-blue-400">💎</span>}
-                      </span>
-                      <button
-                        onClick={signOut}
-                        className="p-2 text-foreground/60 hover:text-foreground transition-colors rounded-lg hover:bg-white/10"
-                      >
-                        <LogOut className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ) : (
+              <div className="hidden lg:block">
+                {isFounderLoggedIn ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-foreground/80">
+                      <UserIcon className="w-4 h-4 inline mr-1" />
+                      Aniketh
+                      <span className="ml-1 text-yellow-400">👑</span>
+                    </span>
                     <button
-                      onClick={() => setShowAuth(true)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all duration-300 rounded-lg"
+                      onClick={logout}
+                      className="p-2 text-foreground/60 hover:text-foreground transition-colors rounded-lg hover:bg-white/10"
                     >
-                      <LogIn className="w-4 h-4" />
-                      Login
+                      <LogOut className="w-4 h-4" />
                     </button>
-                  )}
-                </div>
-              )}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAuth(true)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all duration-300 rounded-lg"
+                  >
+                    <LogIn className="w-4 h-4" />
+                    Founder Login
+                  </button>
+                )}
+              </div>
 
               {/* Mobile menu button */}
               <div className="lg:hidden">
@@ -137,17 +135,16 @@ const Navigation = () => {
                 
                 {/* Mobile Auth */}
                 <div className="border-t border-white/20 pt-4 mt-4">
-                  {user && profile ? (
+                  {isFounderLoggedIn ? (
                     <div className="space-y-2">
                       <div className="px-4 py-2 text-sm text-foreground/80">
                         <UserIcon className="w-4 h-4 inline mr-2" />
-                        {profile.name}
-                        {profile.role === 'admin' && <span className="ml-1 text-yellow-400">👑</span>}
-                        {profile.role === 'customer' && <span className="ml-1 text-blue-400">💎</span>}
+                        Aniketh
+                        <span className="ml-1 text-yellow-400">👑</span>
                       </div>
                       <button
                         onClick={() => {
-                          signOut();
+                          logout();
                           setIsOpen(false);
                         }}
                         className="w-full text-left px-4 py-3 text-base font-medium text-red-400 hover:bg-red-500/20 transition-all duration-300 rounded-lg"
@@ -165,7 +162,7 @@ const Navigation = () => {
                       className="w-full text-left px-4 py-3 text-base font-medium text-foreground/80 hover:text-foreground hover:bg-white/10 transition-all duration-300 rounded-lg"
                     >
                       <LogIn className="w-4 h-4 inline mr-2" />
-                      Login
+                      Founder Login
                     </button>
                   )}
                 </div>
@@ -175,7 +172,7 @@ const Navigation = () => {
         </div>
       </nav>
 
-      <AuthDialog open={showAuth} onClose={() => setShowAuth(false)} />
+      <SimpleLoginDialog open={showAuth} onClose={() => setShowAuth(false)} />
     </>
   );
 };
